@@ -1,4 +1,4 @@
-var grid = {width: 50, height: 50};
+var grid = {width: 40, height: 40};
 var markTable = [];
 
 function gridInitialize(){
@@ -127,7 +127,7 @@ class cell{
     }
 
     evaluateFValue(destination, source){
-        this.f = this.g + this.heuristic1(destination, source);
+        this.f = this.g + this.heuristic5(destination, source);
     }
 
     heuristic1(destination, source){
@@ -138,7 +138,7 @@ class cell{
         var CS = distance(this, source);
         var CD = distance(this, destination);
         var SD = distance(source, destination);
-        return Math.acos((CS**2 + SD**2 - CD**2) / (2 * CS * SD));
+        return Math.abs(((CS**2 + SD**2 - CD**2) / (2 * CS * SD)) - 1);
     }
 
     heuristic3(destination, source){
@@ -147,6 +147,20 @@ class cell{
 
     heuristic4(){
         return 0;
+    }
+
+    heuristic5(destination, source){
+        return 2 * this.heuristic1(destination, source) + this.heuristic2(destination, source);
+    }
+
+    heuristic6(destination, source){
+        var obstacle = 0
+        obstacle += isInsideGrid(this.x, this.y - 1) && isWall(this.x, this.y - 1) ? 1 : 0;
+        obstacle += isInsideGrid(this.x, this.y + 1) && isWall(this.x, this.y + 1) ? 1 : 0;
+        obstacle += isInsideGrid(this.x - 1, this.y) && isWall(this.x - 1, this.y) ? 1 : 0;
+        obstacle += isInsideGrid(this.x + 1, this.y) && isWall(this.x + 1, this.y) ? 1 : 0;
+
+        return this.heuristic5(destination, source) - 10000 * obstacle;
     }
 }
 
@@ -280,7 +294,7 @@ function AStarAlgorithm(){
             successor.evaluateFValue(destination, source);
             var samePosition = samePositionInOpenList(successor);
             if(samePosition !== null){
-                if(samePosition.cell.f > successor.f){
+                if(samePosition.cell.g > successor.g){
                     updateOpenList(samePosition, successor);
                     continue;
                 }
@@ -304,14 +318,17 @@ var gwidth = 1000;
 var gheight = 1000;
 var cellWidth = 20;
 var cellHeight = 20;
+var allowToRun = false;
+var createMaze = false;
+var selectSD = true;
 
 function setup(){
     mazeGenerating();
     pickedSource = false;
     pickedDestination = false;
     createCanvas(gwidth + cellWidth, gheight + cellHeight)
-    for(var i = 0 ; i < 50 ; i ++){
-        for(var j = 0 ; j < 50 ; j ++){
+    for(var i = 0 ; i < grid.width ; i ++){
+        for(var j = 0 ; j < grid.height ; j ++){
             if(grid[i][j] == 1) {
                 fill(255)
             } else{
@@ -320,35 +337,54 @@ function setup(){
             rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
         }
     }
+
+}
+
+function mouseDragged(){
+    if(createMaze){
+        var i = Math.floor(mouseX / cellWidth);
+        var j = Math.floor(mouseY / cellWidth);
+        grid[i][j] = 0;
+        fill(0);
+        rect(Math.floor(mouseX / cellWidth) * cellWidth, Math.floor(mouseY / cellWidth) * cellHeight, cellWidth, cellHeight)
+    }
 }
 
 function mousePressed(){
-    var x = Math.floor(mouseX / cellWidth);
-    var y = Math.floor(mouseY / cellHeight);
+    if(selectSD){
+        var x = Math.floor(mouseX / cellWidth);
+        var y = Math.floor(mouseY / cellHeight);
 
-    if(isInsideGrid(x, y) && !isWall(x, y)){    
-        if(pickedSource){
-            if(pickedDestination){
-                alert("Da chon diem xuat phat va diem dich")
-            } else{
-                if(x == source.x && y == source.y){
-                    alert("Diem xuat phat va diem dich trung nhau")
+        if(isInsideGrid(x, y) && !isWall(x, y)){    
+            if(pickedSource){
+                if(pickedDestination){
+                    alert("Da chon diem xuat phat va diem dich")
                 } else{
-                    destination = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
-                    fill(0, 255, 0);
-                    rect(destination.x * cellWidth, destination.y * cellHeight, cellWidth, cellHeight)
-                    pickedDestination = true;
-    
-                    search();
-                    loop();
-                }
-            } 
-        } else{
-            source = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
-            fill(255, 0, 0);
-            rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight)
-            pickedSource = true;
+                    if(x == source.x && y == source.y){
+                        alert("Diem xuat phat va diem dich trung nhau")
+                    } else{
+                        destination = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
+                        fill(0, 255, 0);
+                        rect(destination.x * cellWidth, destination.y * cellHeight, cellWidth, cellHeight)
+                        pickedDestination = true;
+
+                        search();
+                        loop();
+                    }
+                } 
+            } else{
+                source = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
+                fill(255, 0, 0);
+                rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight)
+                pickedSource = true;
+            }
         }
+    } else if(createMaze){
+        var i = Math.floor(mouseX / cellWidth);
+        var j = Math.floor(mouseY / cellWidth);
+        grid[i][j] = 0;
+        fill(0);
+        rect(Math.floor(mouseX / cellWidth) * cellWidth, Math.floor(mouseY / cellWidth) * cellHeight, cellWidth, cellHeight)
     }
 }
 
@@ -384,3 +420,22 @@ $("#reload").on("click", function(){
     location.reload();
 })
 
+$("#createMaze").on("click", function(){
+    createMaze = true;
+    selectSD = false;
+})
+
+$("#selectSD").on("click", function(){
+    createMaze = false;
+    selectSD = true;
+})
+
+$("#clearMaze").on("click", function(){
+    for(var i = 0 ; i < grid.width ; i ++){
+        for(var j = 0 ; j < grid.height ; j ++){
+            grid[i][j] = 1;
+            fill(255);
+            rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+        }
+    }
+})
