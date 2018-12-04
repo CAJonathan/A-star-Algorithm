@@ -126,8 +126,25 @@ class cell{
         this.g = g;
     }
 
-    evaluateFValue(destination, source){
-        this.f = this.g + this.heuristic5(destination, source);
+    evaluateFValue(destination, source, index){
+        var heuristic = null
+        switch(index){
+            case "1":{
+                this.f = this.g + this.heuristic1(destination, source);
+            }
+            case "2":{
+                this.f = this.g + this.heuristic2(destination, source);
+            }
+            case "3":{
+                this.f = this.g + this.heuristic3(destination, source);
+            }
+            case "4":{
+                this.f = this.g + this.heuristic4(destination, source);
+            }
+            case "5":{
+                this.f = this.g + this.heuristic5(destination, source);
+            }
+        }
     }
 
     heuristic1(destination, source){
@@ -142,11 +159,11 @@ class cell{
     }
 
     heuristic3(destination, source){
-        return Math.abs(destination.x - this.x) + Math.abs(destination.y + this.y)
+        return Math.abs(destination.x - this.x) + Math.abs(destination.y - this.y)
     }
 
     heuristic4(){
-        return 0;
+        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
     }
 
     heuristic5(destination, source){
@@ -272,7 +289,12 @@ function AStarAlgorithm(){
                         {x:current.x - 1, y:current.y}, 
                         {x:current.x + 1, y:current.y},  
                         {x:current.x, y:current.y + 1}]
-
+        if($('input[name=diagonal]:checked').val() == "allowdiagonal"){
+            candidate.push({x:current.x - 1, y:current.y - 1})
+            candidate.push({x:current.x - 1, y:current.y + 1})
+            candidate.push({x:current.x + 1, y:current.y - 1})  
+            candidate.push({x:current.x + 1, y:current.y + 1})
+        }
         var neighbors = [];
         for(let i = 0 ; i < candidate.length ; i ++){
             if(isInsideGrid(candidate[i].x, candidate[i].y) && !isWall(candidate[i].x, candidate[i].y) && !gridDetail[candidate[i].x][candidate[i].y].isVisited){
@@ -290,8 +312,8 @@ function AStarAlgorithm(){
                 hasPath = true;
                 return pathTracing();
             }
-
-            successor.evaluateFValue(destination, source);
+            var index = $('input[name=heuristic]:checked').val()
+            successor.evaluateFValue(destination, source, index);
             var samePosition = samePositionInOpenList(successor);
             if(samePosition !== null){
                 if(samePosition.cell.g > successor.g){
@@ -416,6 +438,7 @@ function draw(){
         }
     }
 }
+
 $("#reload").on("click", function(){
     location.reload();
 })
@@ -423,11 +446,13 @@ $("#reload").on("click", function(){
 $("#createMaze").on("click", function(){
     createMaze = true;
     selectSD = false;
+    $("#mode").text("Customize the maze")
 })
 
 $("#selectSD").on("click", function(){
     createMaze = false;
     selectSD = true;
+    $("#mode").text("Select source and destination")
 })
 
 $("#clearMaze").on("click", function(){

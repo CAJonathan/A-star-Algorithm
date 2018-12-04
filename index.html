@@ -9,11 +9,68 @@
     <title>Document</title>
 </head>
 <body>
-    <div id="option">
-        <button type="button" class="btn btn-success" id="createMaze">Maze Generating</button>
-        <button type="button" class="btn btn-success" id="selectSD">Select Source-Destination</button>
-        <button type="button" class="btn btn-success" id="clearMaze">Clear Maze</button>
-        <button type="button" class="btn btn-success" id="reload">Clear</button>
+
+    <div class="container-fluid" style="display: flex; justify-content: center">
+        <h1 class="text-danger">Áp dụng A* tìm đường đi trong mê cung</h1>
+    </div>
+    <div id="hold">
+        <form>
+            <div class="option">
+                <label class="form-check-label" for="exampleCheck1">Chọn chế độ nước đi</label>
+                <div class="option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="diagonal" value="allowdiagonal" checked>
+                        <label class="form-check-label" for="diagonal">
+                            Cho phép đi chéo
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="diagonal" value="notallowdiagonal">
+                        <label class="form-check-label" for="diagonal">
+                            Không cho phép đi chéo
+                        </label>
+                    </div>
+                </div>
+                <label class="form-check-label" for="exampleCheck1">Chọn hàm heuristic</label>
+                <div class="option">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="heuristic" value="1" checked>
+                        <label class="form-check-label" for="heuristic">
+                            h1
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="heuristic" value="2">
+                        <label class="form-check-label" for="heuristic">
+                            h2
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="heuristic" value="3">
+                        <label class="form-check-label" for="heuristic">
+                            h3
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="heuristic" value="4">
+                        <label class="form-check-label" for="heuristic">
+                            h4
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="heuristic" value="5">
+                        <label class="form-check-label" for="heuristic">
+                            h5
+                        </label>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-success" id="createMaze">Maze Generating</button>
+                <button type="button" class="btn btn-success" id="selectSD">Select Source-Destination</button>
+                <p>Mode: <span id="mode">Select source and destination</span></p>
+                <button type="button" class="btn btn-success" id="clearMaze">Clear Maze</button>
+                <button type="button" class="btn btn-success" id="reload">New Session</button>
+            </div>
+        </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/p5.js" type="text/javascript"></script>
