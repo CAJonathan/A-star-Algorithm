@@ -103,12 +103,12 @@ class cell{
         this.x = x;
         this.y = y;
         this.parent = parent;
-        this.isVisited = false;
+        this.isConsidered = false;
         this.g = g;
     }
 
     evaluateFValue(destination, source, index){
-        this.f = this.g + 2 * this.heuristic1(destination, source);
+        this.f = this.g + this.heuristic1(destination, source);
     }
 
     heuristic1(destination, source){
@@ -162,8 +162,8 @@ function initialize(){
     }
 }
 
-function isDestination(x, y, destination){
-    return (x === destination.x && y === destination.y);
+function isNode(x, y, node){
+    return (x === node.x && y === node.y);
 }
 
 function isWall(x, y){
@@ -229,7 +229,7 @@ function updateCell(x, y, parent, g){
 }
 
 function checkGrid(){
-    return !(isDestination(source.x, source.y, destination) || isWall(source.x, source.y) || isWall(destination.x, destination.y) || !isInsideGrid(source.x, source.y) || !isInsideGrid(destination.x, destination.y))
+    return !(isNode(source.x, source.y, destination) || isWall(source.x, source.y) || isWall(destination.x, destination.y) || !isInsideGrid(source.x, source.y) || !isInsideGrid(destination.x, destination.y))
 }
 
 function AStarAlgorithm(){
@@ -239,7 +239,7 @@ function AStarAlgorithm(){
     insertIntoOpenList(gridDetail[source.x][source.y]);
     while(openList.length > 0){
         var current = openList.shift();
-        if(isDestination(current.x, current.y, destination)){
+        if(isNode(current.x, current.y, destination)){
             hasPath = true;
             return pathTracing();
         }
@@ -286,6 +286,7 @@ function AStarAlgorithm(){
             }
         })
         closeList.push(current);
+        gridDetail[current.x][current.y].isConsidered = true;
     }
     return null;
 }
@@ -304,22 +305,22 @@ var allowToRun = false;
 var createMaze = false;
 var selectSD = true;
 
+function drawGrid(){
+    for(var i = 0 ; i < grid.width ; i ++){
+        for(var j = 0 ; j < grid.height ; j ++){
+            fill(grid[i][j] == 1 ? 255 : 0);
+            rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
+        }
+    }
+}
+
 function setup(){
     mazeGenerating();
     pickedS = false;
     pickedD = false;
     var canvas = createCanvas(gwidth + cellWidth, gheight + cellHeight)
     canvas.parent('sketch-holder');
-    for(var i = 0 ; i < grid.width ; i ++){
-        for(var j = 0 ; j < grid.height ; j ++){
-            if(grid[i][j] == 1) {
-                fill(255)
-            } else{
-                fill(0)
-            }
-            rect(i * cellWidth, j * cellHeight, cellWidth, cellHeight);
-        }
-    }
+    drawGrid()
 
 }
 
@@ -342,14 +343,14 @@ function mousePressed(){
                 if(pickedD){
                     pickedD = false;
                     considered = [];
+                    openList = [];
+                    closeList = []
                     result = [];
                     indexConsidered = 0;
-                    doneConsidered = false;
-
+                    drawGrid()
                     source = {x, y};
                     fill(255, 0, 0);
                     rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight)
-                    pickedS = true;
 
                 } else{
                     if(x == source.x && y == source.y){
@@ -361,6 +362,8 @@ function mousePressed(){
                         pickedD = true;
 
                         search();
+                        $("#result").text(result.length);
+                        $("#considered").text(considered.length);
                         console.log(result.length + " - " + considered.length)
                         loop();
                     }
@@ -380,18 +383,23 @@ function mousePressed(){
 }
 
 var indexConsidered = 0;
-var doneConsidered = false;
 function draw(){
     frameRate(60);
     if(source == null || destination == null){
         var indexPath = 0;
         noLoop();
     } else{
-        if(!doneConsidered){
-            fill(255, 255, 102)
-            rect(considered[indexConsidered].x * cellWidth, considered[indexConsidered].y * cellHeight, cellWidth, cellHeight);
+        if(considered[indexConsidered]){
+            var node = considered[indexConsidered];
+            if(!isNode(node.x, node.y, source) && !isNode(node.x, node.y, destination)){
+                if(gridDetail[node.x][node.y].isConsidered){
+                    fill(255, 255, 102)
+                } else{
+                    fill(204, 216, 255)
+                }
+                rect(considered[indexConsidered].x * cellWidth, considered[indexConsidered].y * cellHeight, cellWidth, cellHeight);
+            }
             indexConsidered ++;
-            doneConsidered = indexConsidered >= considered.length ? true : false;
         } else{
             result.shift();
             for(var i = 0 ; i < result.length ; i ++){
