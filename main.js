@@ -108,32 +108,49 @@ class cell{
     }
 
     evaluateFValue(destination, source, index){
-        this.f = this.g + this.heuristic1(destination, source);
+        this.f = this.g + this.heuristic8(destination, source);
     }
 
     heuristic1(destination, source){
-        return distance(this, destination)
+        return Math.floor(distance(this, destination) ** 2)
     }
 
     heuristic2(destination, source){
-        var CS = distance(this, source);
-        var CD = distance(this, destination);
-        var SD = distance(source, destination);
-        return Math.abs(((CS**2 + SD**2 - CD**2) / (2 * CS * SD)) - 1);
+        return distance(this, destination)
     }
 
     heuristic3(destination, source){
-        var dx = Math.abs(destination.x - this.x);
-        var dy = Math.abs(destination.y - this.y);
-        return dx > dy ? 10 * dx + 14 * dy : 14 * dx + 10 * dy
+        var CS = distance(this, source);
+        var CD = distance(this, destination);
+        var SD = distance(source, destination);
+        return -Math.abs(((CS**2 + SD**2 - CD**2) / (2 * CS * SD)));
+
     }
 
-    heuristic4(){
-        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
+    heuristic4(destination, source){
+        var dx = Math.abs(destination.x - this.x);
+        var dy = Math.abs(destination.y - this.y);
+        return dx > dy ? dx + sqrt(2) * dy : sqrt(2) * dx + dy
     }
 
     heuristic5(destination, source){
-        return 2 * this.heuristic1(destination, source) + this.heuristic2(destination, source);
+        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
+    }
+
+    heuristic6(destination, source){
+        return this.heuristic2(destination, source) + this.heuristic3(destination, source);
+    }
+
+    heuristic7(destination, source){
+        return this.heuristic3(destination, source) + this.heuristic5(destination, source);
+    }
+
+    heuristic8(destination, source){
+        var dx1 = this.x - destination.x;
+        var dy1 = this.y - destination.y;
+        var dx2 = source.x - destination.x;
+        var dy2 = source.y - destination.y;
+        return Math.abs(dx1 * dy2 + dx2 * dy1) * 0.01 + this.heuristic2(destination, source);
     }
 }
 
@@ -147,6 +164,7 @@ var source = null;
 var destination = null;
 
 var considered = [];
+var cellConsidered = 0;
 var result = null;
 var hasPath = false;
 
@@ -232,6 +250,14 @@ function checkGrid(){
     return !(isNode(source.x, source.y, destination) || isWall(source.x, source.y) || isWall(destination.x, destination.y) || !isInsideGrid(source.x, source.y) || !isInsideGrid(destination.x, destination.y))
 }
 
+function cost(result){
+    var c = 0;
+    for(var i = 1 ; i < result.length ; i ++){
+        c += distance(result[i], result[i - 1]);
+    }
+    return c;
+}
+
 function AStarAlgorithm(){
     initialize();
     if(!checkGrid()) return null;
@@ -239,6 +265,8 @@ function AStarAlgorithm(){
     insertIntoOpenList(gridDetail[source.x][source.y]);
     while(openList.length > 0){
         var current = openList.shift();
+        cellConsidered ++;
+        gridDetail[current.x][current.y].isConsidered = true;
         if(isNode(current.x, current.y, destination)){
             hasPath = true;
             return pathTracing();
@@ -286,7 +314,6 @@ function AStarAlgorithm(){
             }
         })
         closeList.push(current);
-        gridDetail[current.x][current.y].isConsidered = true;
     }
     return null;
 }
@@ -345,7 +372,9 @@ function mousePressed(){
                     considered = [];
                     openList = [];
                     closeList = []
+                    gridDetail = [];
                     result = [];
+                    cellConsidered = 0;
                     indexConsidered = 0;
                     drawGrid()
                     source = {x, y};
@@ -357,14 +386,14 @@ function mousePressed(){
                         alert("Diem xuat phat va diem dich trung nhau")
                     } else{
                         destination = {x: x, y: y};
-                        fill(0, 255, 0);
+                        fill(230, 0, 172);
                         rect(destination.x * cellWidth, destination.y * cellHeight, cellWidth, cellHeight)
                         pickedD = true;
 
                         search();
                         $("#result").text(result.length);
-                        $("#considered").text(considered.length);
-                        console.log(result.length + " - " + considered.length)
+                        $("#considered").text(cellConsidered);
+                        $("#cost").text(Math.floor(cost(result) * 1000) / 1000);
                         loop();
                     }
                 } 
@@ -386,16 +415,15 @@ var indexConsidered = 0;
 function draw(){
     frameRate(60);
     if(source == null || destination == null){
-        var indexPath = 0;
         noLoop();
     } else{
         if(considered[indexConsidered]){
             var node = considered[indexConsidered];
             if(!isNode(node.x, node.y, source) && !isNode(node.x, node.y, destination)){
                 if(gridDetail[node.x][node.y].isConsidered){
-                    fill(255, 255, 102)
+                    fill(255, 119, 51)
                 } else{
-                    fill(204, 216, 255)
+                    fill(255, 255, 77)
                 }
                 rect(considered[indexConsidered].x * cellWidth, considered[indexConsidered].y * cellHeight, cellWidth, cellHeight);
             }
@@ -403,10 +431,10 @@ function draw(){
         } else{
             result.shift();
             for(var i = 0 ; i < result.length ; i ++){
-                fill(191, 64, 64)
+                fill(0, 255, 0)
                 rect(result[i].x * cellWidth, result[i].y * cellHeight, cellWidth, cellHeight);
             }
-            fill(0, 255, 0)
+            fill(230, 0, 172)
             rect(destination.x * cellWidth, destination.y * cellHeight, cellWidth, cellHeight);
             fill(255, 0, 0)
             rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight);
