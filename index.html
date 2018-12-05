@@ -39,33 +39,45 @@
                     <label class="form-check-label" for="exampleCheck1">Chọn hàm heuristic</label>
                     <div class="option">
                         <div class="form-check">
-                            <input class="form-check-input" type="radio" name="heuristic" value="1" checked>
+                            <input class="form-check-input" type="radio" name="heuristic" value="1" check>
                             <label class="form-check-label" for="heuristic">
-                                h1
+                                Euclide
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="heuristic" value="2">
                             <label class="form-check-label" for="heuristic">
-                                h2
+                                Euclide without square
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="heuristic" value="3">
                             <label class="form-check-label" for="heuristic">
-                                h3
+                                Chebychev
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="heuristic" value="4">
                             <label class="form-check-label" for="heuristic">
-                                h4
+                                Mahatan
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="heuristic" value="5">
                             <label class="form-check-label" for="heuristic">
-                                h5
+                                Octile
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="heuristic" value="6">
+                            <label class="form-check-label" for="heuristic">
+                                Tie-Breaking
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="heuristic" value="7">
+                            <label class="form-check-label" for="heuristic">
+                                Angle_Euclide
                             </label>
                         </div>
                     </div>
@@ -76,7 +88,7 @@
                     </div>
                     <div class="option">
                         <p>Kết quả:</p>
-                        <p>Độ dài đường đi: <span id="result"></span></p>
+                        <p>Số ô trên đường đi: <span id="result"></span></p>
                         <p>Tổng chi phí đường đi: <span id="cost"></span></span></p>
                         <p>Số ô phải xét: <span id="considered"></span></span></p>
                     </div>

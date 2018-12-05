@@ -50,7 +50,6 @@ function drill(probability){
 	}
 }
 
-
 function generator(){
 	var randomIndexSource = Math.floor(Math.random() * 3);
 	var stack = [];
@@ -108,7 +107,49 @@ class cell{
     }
 
     evaluateFValue(destination, source, index){
-        this.f = this.g + this.heuristic6(destination, source);
+        switch(index){
+            case "1":{
+                this.f = this.g + this.heuristic1(destination, source);
+                console.log(1);
+                break;
+            }
+            case "2":{
+                this.f = this.g + this.heuristic2(destination, source);
+                console.log(2);
+                break;
+            }
+            case "3":{
+                this.f = this.g + this.heuristic3(destination, source);
+                console.log(3);
+                break;
+            }
+            case "4":{
+                this.f = this.g + this.heuristic4(destination, source);
+                console.log(4);
+                break;
+            }
+            case "5":{
+                this.f = this.g + this.heuristic5(destination, source);
+                console.log(5);
+                break;
+            }
+            case "6":{
+                this.f = this.g + this.heuristic6(destination, source);
+                console.log(6);
+                break;
+            }
+            case "7":{
+                this.f = this.g + this.heuristic7(destination, source);
+                console.log(7);
+                break;
+            }
+            default:{
+                this.f = this.g + this.heuristic1(destination, source);
+                console.log(8);
+                break;
+            }
+        }
+        
     }
 
     heuristic1(destination, source){
@@ -218,15 +259,15 @@ function samePositionInList(cell, list){
 }
 
 function insertIntoOpenList(cell){
-    var index = 0;
-    while(index < openList.length && openList[index].f < cell.f){
-        index ++;
+    var i = 0;
+    while(i < openList.length && openList[i].f < cell.f){
+        i ++;
     }
 
-    if(index === openList.length){
+    if(i === openList.length){
         openList.push(cell);
     } else {
-        openList.splice(index, 0, cell);
+        openList.splice(i, 0, cell);
     }
     
 }
@@ -236,10 +277,9 @@ function updateOpenList(index, cell){
     insertIntoOpenList(cell);
 }
 
-function updateCell(x, y, parent, g){
+function updateCell(x, y, parent, g, index){
     gridDetail[x][y].parent = parent;
     gridDetail[x][y].g = g;
-    var index = $('input[name=heuristic]:checked').val()
     gridDetail[x][y].evaluateFValue(destination, source, index);
 }
 
@@ -258,6 +298,7 @@ function cost(result){
 function AStarAlgorithm(){
     initialize();
     if(!checkGrid()) return null;
+    var index = $('input[name="heuristic"]:checked').val();
 
     insertIntoOpenList(gridDetail[source.x][source.y]);
     while(openList.length > 0){
@@ -296,17 +337,17 @@ function AStarAlgorithm(){
 
             if(samePositionO !== null){
                 if(samePositionO.cell.g > scDist){
-                    updateCell(successor.x, successor.y, current, scDist)
+                    updateCell(successor.x, successor.y, current, scDist, index)
                     updateOpenList(samePositionO.index, gridDetail[successor.x][successor.y]);
                 }
             } else if(samePositionC !== null){
                 if(samePositionC.cell.g > scDist){
-                    updateCell(successor.x, successor.y, current, scDist)
+                    updateCell(successor.x, successor.y, current, scDist, index)
                     closeList.splice(samePositionC.index, 1);
                     insertIntoOpenList(gridDetail[successor.x][successor.y])
                 }
             } else {
-                updateCell(successor.x, successor.y, current, scDist)
+                updateCell(successor.x, successor.y, current, scDist, index)
                 insertIntoOpenList(gridDetail[successor.x][successor.y]);
             }
         })
@@ -454,7 +495,6 @@ $("#createMaze").on("click", function(){
 $("#selectSD").on("click", function(){
     createMaze = false;
     selectSD = true;
-    console.log(333)
     $("#mode").text("Select source and destination")
 })
 
