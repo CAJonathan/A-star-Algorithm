@@ -120,7 +120,7 @@ class cell{
     }
 
     heuristic3(destination, source){
-        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
+        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y - this.y));
 
     }
 
@@ -139,7 +139,7 @@ class cell{
         var dy1 = this.y - destination.y;
         var dx2 = source.x - destination.x;
         var dy2 = source.y - destination.y;
-        return Math.abs(dx1 * dy2 + dx2 * dy1) * 0.001 + this.heuristic2(destination, source);
+        return Math.abs(dx1 * dy2 - dx2 * dy1) * 0.001 + this.heuristic2(destination, source);
     }
 
     heuristic7(destination, source){
