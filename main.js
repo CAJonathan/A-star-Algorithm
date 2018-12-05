@@ -108,49 +108,46 @@ class cell{
     }
 
     evaluateFValue(destination, source, index){
-        this.f = this.g + this.heuristic8(destination, source);
+        this.f = this.g + this.heuristic6(destination, source);
     }
 
     heuristic1(destination, source){
-        return Math.floor(distance(this, destination) ** 2)
-    }
-
-    heuristic2(destination, source){
         return distance(this, destination)
     }
 
+    heuristic2(destination, source){
+        return Math.floor(distance(this, destination) ** 2)
+    }
+
     heuristic3(destination, source){
-        var CS = distance(this, source);
-        var CD = distance(this, destination);
-        var SD = distance(source, destination);
-        return -Math.abs(((CS**2 + SD**2 - CD**2) / (2 * CS * SD)));
+        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
 
     }
 
     heuristic4(destination, source){
+        return Math.abs(this.x - destination.x) + Math.abs(this.y - destination.y);
+    }
+
+    heuristic5(destination, source){
         var dx = Math.abs(destination.x - this.x);
         var dy = Math.abs(destination.y - this.y);
         return dx > dy ? dx + sqrt(2) * dy : sqrt(2) * dx + dy
     }
 
-    heuristic5(destination, source){
-        return Math.max(Math.abs(destination.x - this.x), Math.abs(destination.y + this.y));
-    }
-
     heuristic6(destination, source){
-        return this.heuristic2(destination, source) + this.heuristic3(destination, source);
-    }
-
-    heuristic7(destination, source){
-        return this.heuristic3(destination, source) + this.heuristic5(destination, source);
-    }
-
-    heuristic8(destination, source){
         var dx1 = this.x - destination.x;
         var dy1 = this.y - destination.y;
         var dx2 = source.x - destination.x;
         var dy2 = source.y - destination.y;
-        return Math.abs(dx1 * dy2 + dx2 * dy1) * 0.01 + this.heuristic2(destination, source);
+        return Math.abs(dx1 * dy2 + dx2 * dy1) * 0.001 + this.heuristic2(destination, source);
+    }
+
+    heuristic7(destination, source){
+        var CS = distance(this, source);
+        var CD = distance(this, destination);
+        var SD = distance(source, destination);
+        var c =  -Math.abs(((CS**2 + SD**2 - CD**2) / (2 * CS * SD)));
+        return this.heuristic2(destination, source) + c;
     }
 }
 
