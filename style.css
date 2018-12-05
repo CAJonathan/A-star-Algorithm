@@ -1,14 +1,4 @@
-.option{
-    display: block;
-    padding: 20px;
-}
-
-#defaultCanvas0{
-    margin: 20px;
-    float: right;
-}
-
-#hold{
-    display: inline-block;
-    float: right;
+.content{
+    display: flex;
+    justify-content: center;
 }

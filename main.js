@@ -1,4 +1,4 @@
-var grid = {width: 40, height: 40};
+var grid = {width: 30, height: 30};
 var markTable = [];
 
 function gridInitialize(){
@@ -90,27 +90,8 @@ function mazeGenerating(){
 }
 
 
-// Deploy thuật toán như sau:
-/*
-    1. Khởi tạo openList
-    2. Khởi tạo closedList, đặt node xuất phát vào trong openList (có thể đặt hàm f có node bằng 0)
-    3. Vòng lặp while(openList không rỗng))
-        a. Tìm node có f nhở nhất trong openList, đặt node là node q
-        b. Pop q khởi openList
-        c. Tạo ra 8 successor (các node lân cần) của q và đặt tọa độ cha của chúng là tọa độ của q
-        d. Vòng lặp for(mỗi successor của q)
-            i. nếu successor là đích thì dừng tìm kiếm
 
-            Tính g, h, f = g + h cho successor
-
-            ii. Nếu successor này đã có trong openList và successor trong openList f nhở hơn successor hiện tại thì bỏ qua successor này
-            
-            iii. Nếu successor đã tồn tại trong closedList thì skip successor này
-
-           Kết thúc vòng for.
-        e. Push q vào closedList
-       Kết thúc vòng while
-*/
+// Algorithm
 
 
 function distance(a, b){
@@ -127,24 +108,7 @@ class cell{
     }
 
     evaluateFValue(destination, source, index){
-        var heuristic = null
-        switch(index){
-            case "1":{
-                this.f = this.g + this.heuristic1(destination, source);
-            }
-            case "2":{
-                this.f = this.g + this.heuristic2(destination, source);
-            }
-            case "3":{
-                this.f = this.g + this.heuristic3(destination, source);
-            }
-            case "4":{
-                this.f = this.g + this.heuristic4(destination, source);
-            }
-            case "5":{
-                this.f = this.g + this.heuristic5(destination, source);
-            }
-        }
+        this.f = this.g + 2 * this.heuristic1(destination, source);
     }
 
     heuristic1(destination, source){
@@ -159,7 +123,9 @@ class cell{
     }
 
     heuristic3(destination, source){
-        return Math.abs(destination.x - this.x) + Math.abs(destination.y - this.y)
+        var dx = Math.abs(destination.x - this.x);
+        var dy = Math.abs(destination.y - this.y);
+        return dx > dy ? 10 * dx + 14 * dy : 14 * dx + 10 * dy
     }
 
     heuristic4(){
@@ -169,23 +135,14 @@ class cell{
     heuristic5(destination, source){
         return 2 * this.heuristic1(destination, source) + this.heuristic2(destination, source);
     }
-
-    heuristic6(destination, source){
-        var obstacle = 0
-        obstacle += isInsideGrid(this.x, this.y - 1) && isWall(this.x, this.y - 1) ? 1 : 0;
-        obstacle += isInsideGrid(this.x, this.y + 1) && isWall(this.x, this.y + 1) ? 1 : 0;
-        obstacle += isInsideGrid(this.x - 1, this.y) && isWall(this.x - 1, this.y) ? 1 : 0;
-        obstacle += isInsideGrid(this.x + 1, this.y) && isWall(this.x + 1, this.y) ? 1 : 0;
-
-        return this.heuristic5(destination, source) - 10000 * obstacle;
-    }
 }
 
 var gridDetail = [];
 var openList = [];
+var closeList = [];
 
-var pickedSource = false;
-var pickedDestination = false;
+var pickedS = false;
+var pickedD = false;
 var source = null;
 var destination = null;
 
@@ -236,10 +193,10 @@ function pathTracing(){
     return path;
 }
 
-function samePositionInOpenList(cell){
-    for(var i = 0 ; i < openList.length ; i ++){
-        if(openList[i].x == cell.x && openList[i].y == cell.y){
-            return {cell:openList[i], index:i};
+function samePositionInList(cell, list){
+    for(var i = 0 ; i < list.length ; i ++){
+        if(list[i].x == cell.x && list[i].y == cell.y){
+            return {cell:list[i], index:i};
         }
     }
     return null;
@@ -260,18 +217,15 @@ function insertIntoOpenList(cell){
 }
 
 function updateOpenList(index, cell){
-    var idx = index;
     openList.splice(index, 1);
+    insertIntoOpenList(cell);
+}
 
-    while(index > -1 && openList[index].f > cell.f){
-        index --;
-    }
-
-    if(index === -1){
-        openList.unshift(cell);
-    } else {
-        openList.splice(index, 0, cell);
-    }
+function updateCell(x, y, parent, g){
+    gridDetail[x][y].parent = parent;
+    gridDetail[x][y].g = g;
+    var index = $('input[name=heuristic]:checked').val()
+    gridDetail[x][y].evaluateFValue(destination, source, index);
 }
 
 function checkGrid(){
@@ -285,6 +239,11 @@ function AStarAlgorithm(){
     insertIntoOpenList(gridDetail[source.x][source.y]);
     while(openList.length > 0){
         var current = openList.shift();
+        if(isDestination(current.x, current.y, destination)){
+            hasPath = true;
+            return pathTracing();
+        }
+
         var candidate = [{x:current.x, y:current.y - 1}, 
                         {x:current.x - 1, y:current.y}, 
                         {x:current.x + 1, y:current.y},  
@@ -295,37 +254,38 @@ function AStarAlgorithm(){
             candidate.push({x:current.x + 1, y:current.y - 1})  
             candidate.push({x:current.x + 1, y:current.y + 1})
         }
+
         var neighbors = [];
         for(let i = 0 ; i < candidate.length ; i ++){
-            if(isInsideGrid(candidate[i].x, candidate[i].y) && !isWall(candidate[i].x, candidate[i].y) && !gridDetail[candidate[i].x][candidate[i].y].isVisited){
-                gridDetail[candidate[i].x][candidate[i].y].parent = current;
-                gridDetail[candidate[i].x][candidate[i].y].g = current.g + 1;
-                neighbors.push(gridDetail[candidate[i].x][candidate[i].y]);
-                considered.push({x : candidate[i].x, y : candidate[i].y})
+            if(isInsideGrid(candidate[i].x, candidate[i].y) && !isWall(candidate[i].x, candidate[i].y)){
+                neighbors.push(candidate[i]);
+                if(!samePositionInList(candidate[i], considered)) considered.push({x : candidate[i].x, y : candidate[i].y})
             }
         }
 
-        for(let i = 0 ; i < neighbors.length ; i ++){
-            var successor = neighbors[i];
+        neighbors.forEach(successor => {
+            var scDist = current.g + distance(successor, current);
 
-            if(isDestination(successor.x, successor.y, destination)){
-                hasPath = true;
-                return pathTracing();
-            }
-            var index = $('input[name=heuristic]:checked').val()
-            successor.evaluateFValue(destination, source, index);
-            var samePosition = samePositionInOpenList(successor);
-            if(samePosition !== null){
-                if(samePosition.cell.g > successor.g){
-                    updateOpenList(samePosition, successor);
-                    continue;
+            var samePositionO = samePositionInList(successor, openList);
+            var samePositionC = samePositionInList(successor, closeList);
+
+            if(samePositionO !== null){
+                if(samePositionO.cell.g > scDist){
+                    updateCell(successor.x, successor.y, current, scDist)
+                    updateOpenList(samePositionO.index, gridDetail[successor.x][successor.y]);
                 }
-            } else{
-                insertIntoOpenList(neighbors[i]);
+            } else if(samePositionC !== null){
+                if(samePositionC.cell.g > scDist){
+                    updateCell(successor.x, successor.y, current, scDist)
+                    closeList.splice(samePositionC.index, 1);
+                    insertIntoOpenList(gridDetail[successor.x][successor.y])
+                }
+            } else {
+                updateCell(successor.x, successor.y, current, scDist)
+                insertIntoOpenList(gridDetail[successor.x][successor.y]);
             }
-        }
-
-        gridDetail[current.x][current.y].isVisited = true;
+        })
+        closeList.push(current);
     }
     return null;
 }
@@ -336,8 +296,8 @@ function search(){
 
 // UI creation
 
-var gwidth = 1000;
-var gheight = 1000;
+var gwidth = 801;
+var gheight = 801;
 var cellWidth = 20;
 var cellHeight = 20;
 var allowToRun = false;
@@ -346,9 +306,10 @@ var selectSD = true;
 
 function setup(){
     mazeGenerating();
-    pickedSource = false;
-    pickedDestination = false;
-    createCanvas(gwidth + cellWidth, gheight + cellHeight)
+    pickedS = false;
+    pickedD = false;
+    var canvas = createCanvas(gwidth + cellWidth, gheight + cellHeight)
+    canvas.parent('sketch-holder');
     for(var i = 0 ; i < grid.width ; i ++){
         for(var j = 0 ; j < grid.height ; j ++){
             if(grid[i][j] == 1) {
@@ -373,40 +334,48 @@ function mouseDragged(){
 }
 
 function mousePressed(){
+    var x = Math.floor(mouseX / cellWidth);
+    var y = Math.floor(mouseY / cellHeight);
     if(selectSD){
-        var x = Math.floor(mouseX / cellWidth);
-        var y = Math.floor(mouseY / cellHeight);
-
         if(isInsideGrid(x, y) && !isWall(x, y)){    
-            if(pickedSource){
-                if(pickedDestination){
-                    alert("Da chon diem xuat phat va diem dich")
+            if(pickedS){
+                if(pickedD){
+                    pickedD = false;
+                    considered = [];
+                    result = [];
+                    indexConsidered = 0;
+                    doneConsidered = false;
+
+                    source = {x, y};
+                    fill(255, 0, 0);
+                    rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight)
+                    pickedS = true;
+
                 } else{
                     if(x == source.x && y == source.y){
                         alert("Diem xuat phat va diem dich trung nhau")
                     } else{
-                        destination = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
+                        destination = {x: x, y: y};
                         fill(0, 255, 0);
                         rect(destination.x * cellWidth, destination.y * cellHeight, cellWidth, cellHeight)
-                        pickedDestination = true;
+                        pickedD = true;
 
                         search();
+                        console.log(result.length + " - " + considered.length)
                         loop();
                     }
                 } 
             } else{
-                source = {x: Math.floor(mouseX / cellWidth), y: Math.floor(mouseY / cellHeight)};
+                source = {x, y};
                 fill(255, 0, 0);
                 rect(source.x * cellWidth, source.y * cellHeight, cellWidth, cellHeight)
-                pickedSource = true;
+                pickedS = true;
             }
         }
     } else if(createMaze){
-        var i = Math.floor(mouseX / cellWidth);
-        var j = Math.floor(mouseY / cellWidth);
-        grid[i][j] = 0;
+        grid[x][y] = 0;
         fill(0);
-        rect(Math.floor(mouseX / cellWidth) * cellWidth, Math.floor(mouseY / cellWidth) * cellHeight, cellWidth, cellHeight)
+        rect(x * cellWidth, y * cellHeight, cellWidth, cellHeight)
     }
 }
 
@@ -452,6 +421,7 @@ $("#createMaze").on("click", function(){
 $("#selectSD").on("click", function(){
     createMaze = false;
     selectSD = true;
+    console.log(333)
     $("#mode").text("Select source and destination")
 })
 
